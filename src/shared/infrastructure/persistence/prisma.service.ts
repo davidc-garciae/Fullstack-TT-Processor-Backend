@@ -7,7 +7,11 @@ const buildDatabaseUrl = (): string | undefined => {
     return process.env.DATABASE_URL;
   }
 
-  if (!process.env.DB_URL || !process.env.DB_USERNAME || !process.env.DB_PASSWORD) {
+  if (
+    !process.env.DB_URL ||
+    !process.env.DB_USERNAME ||
+    !process.env.DB_PASSWORD
+  ) {
     return undefined;
   }
 
@@ -25,7 +29,9 @@ const buildDatabaseUrl = (): string | undefined => {
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
     const datasourceUrl = buildDatabaseUrl();
-    const adapter = datasourceUrl ? new PrismaPg({ connectionString: datasourceUrl }) : undefined;
+    const adapter = datasourceUrl
+      ? new PrismaPg({ connectionString: datasourceUrl })
+      : undefined;
     super(adapter ? { adapter } : undefined);
   }
 

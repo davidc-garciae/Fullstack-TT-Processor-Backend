@@ -1,4 +1,5 @@
 import { GetTransactionStatusUseCase } from './get-transaction-status.use-case';
+import type { TransactionRepositoryPort } from '../../../shared/domain/ports';
 
 describe('GetTransactionStatusUseCase', () => {
   it('returns status payload when transaction exists', async () => {
@@ -12,7 +13,7 @@ describe('GetTransactionStatusUseCase', () => {
         createdAt: now,
         updatedAt: now,
       }),
-    } as any);
+    } as TransactionRepositoryPort);
 
     const result = await useCase.execute('TT-1');
     expect(result?.status).toBe('PENDING');
@@ -21,7 +22,7 @@ describe('GetTransactionStatusUseCase', () => {
   it('returns null for unknown reference', async () => {
     const useCase = new GetTransactionStatusUseCase({
       findByReference: jest.fn().mockResolvedValue(null),
-    } as any);
+    } as TransactionRepositoryPort);
     const result = await useCase.execute('x');
     expect(result).toBeNull();
   });

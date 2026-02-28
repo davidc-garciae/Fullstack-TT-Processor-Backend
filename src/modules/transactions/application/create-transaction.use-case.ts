@@ -51,7 +51,9 @@ export class CreateTransactionUseCase {
     Result<{ reference: string; status: string }, CreateTransactionError>
   > {
     const existingByIdempotency =
-      await this.transactionRepository.findByIdempotencyKey(input.idempotencyKey);
+      await this.transactionRepository.findByIdempotencyKey(
+        input.idempotencyKey,
+      );
     if (existingByIdempotency) {
       return Ok({
         reference: existingByIdempotency.reference,

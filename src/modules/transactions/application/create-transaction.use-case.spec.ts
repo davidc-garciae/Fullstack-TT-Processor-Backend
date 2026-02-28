@@ -1,4 +1,11 @@
 import { CreateTransactionUseCase } from './create-transaction.use-case';
+import type {
+  CustomerRepositoryPort,
+  DeliveryRepositoryPort,
+  ProductRepositoryPort,
+  StockRepositoryPort,
+  TransactionRepositoryPort,
+} from '../../../shared/domain/ports';
 
 describe('CreateTransactionUseCase', () => {
   it('creates a pending transaction', async () => {
@@ -9,19 +16,23 @@ describe('CreateTransactionUseCase', () => {
           isActive: true,
           priceCents: 10000,
         }),
-      } as any,
+      } as ProductRepositoryPort,
       {
         getByProductId: jest.fn().mockResolvedValue({
           productId: 'p1',
           availableUnits: 5,
         }),
-      } as any,
-      { create: jest.fn().mockResolvedValue({ id: 'c1' }) } as any,
-      { create: jest.fn().mockResolvedValue({ id: 'd1' }) } as any,
+      } as StockRepositoryPort,
+      {
+        create: jest.fn().mockResolvedValue({ id: 'c1' }),
+      } as CustomerRepositoryPort,
+      {
+        create: jest.fn().mockResolvedValue({ id: 'd1' }),
+      } as DeliveryRepositoryPort,
       {
         findByIdempotencyKey: jest.fn().mockResolvedValue(null),
         createPending: jest.fn().mockResolvedValue({}),
-      } as any,
+      } as TransactionRepositoryPort,
     );
 
     const result = await useCase.execute({
@@ -57,13 +68,15 @@ describe('CreateTransactionUseCase', () => {
         findById: jest
           .fn()
           .mockResolvedValue({ id: 'p1', isActive: true, priceCents: 100 }),
-      } as any,
+      } as ProductRepositoryPort,
       {
         getByProductId: jest.fn().mockResolvedValue({ availableUnits: 0 }),
-      } as any,
-      {} as any,
-      {} as any,
-      { findByIdempotencyKey: jest.fn().mockResolvedValue(null) } as any,
+      } as StockRepositoryPort,
+      {} as CustomerRepositoryPort,
+      {} as DeliveryRepositoryPort,
+      {
+        findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      } as TransactionRepositoryPort,
     );
 
     const result = await useCase.execute({
@@ -90,11 +103,13 @@ describe('CreateTransactionUseCase', () => {
 
   it('fails when product does not exist', async () => {
     const useCase = new CreateTransactionUseCase(
-      { findById: jest.fn().mockResolvedValue(null) } as any,
-      {} as any,
-      {} as any,
-      {} as any,
-      { findByIdempotencyKey: jest.fn().mockResolvedValue(null) } as any,
+      { findById: jest.fn().mockResolvedValue(null) } as ProductRepositoryPort,
+      {} as StockRepositoryPort,
+      {} as CustomerRepositoryPort,
+      {} as DeliveryRepositoryPort,
+      {
+        findByIdempotencyKey: jest.fn().mockResolvedValue(null),
+      } as TransactionRepositoryPort,
     );
     const result = await useCase.execute({
       productId: 'missing',
@@ -120,16 +135,16 @@ describe('CreateTransactionUseCase', () => {
 
   it('returns existing transaction for duplicated idempotency key', async () => {
     const useCase = new CreateTransactionUseCase(
-      {} as any,
-      {} as any,
-      {} as any,
-      {} as any,
+      {} as ProductRepositoryPort,
+      {} as StockRepositoryPort,
+      {} as CustomerRepositoryPort,
+      {} as DeliveryRepositoryPort,
       {
         findByIdempotencyKey: jest.fn().mockResolvedValue({
           reference: 'TT-EXISTING',
           status: 'PENDING',
         }),
-      } as any,
+      } as TransactionRepositoryPort,
     );
     const result = await useCase.execute({
       productId: 'p1',

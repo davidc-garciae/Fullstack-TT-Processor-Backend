@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { PaymentGatewayPort, PaymentGatewayResponse } from '../../domain/ports';
+import type {
+  PaymentGatewayPort,
+  PaymentGatewayResponse,
+} from '../../domain/ports';
 
 /**
  * Mock gateway for local development when the real processor API is unreachable.
@@ -9,13 +12,17 @@ import type { PaymentGatewayPort, PaymentGatewayResponse } from '../../domain/po
 export class MockPaymentGateway implements PaymentGatewayPort {
   private readonly logger = new Logger(MockPaymentGateway.name);
 
-  async pay(): Promise<PaymentGatewayResponse> {
+  pay(): Promise<PaymentGatewayResponse> {
     this.logger.log('Mock gateway: approving payment (no external API call)');
-    return {
+    return Promise.resolve({
       status: 'APPROVED',
       externalId: `mock-${Date.now()}`,
       externalStatus: 'APPROVED',
-      raw: { status: 'APPROVED', transactionId: `mock-${Date.now()}`, maskedCard: '****4242' },
-    };
+      raw: {
+        status: 'APPROVED',
+        transactionId: `mock-${Date.now()}`,
+        maskedCard: '****4242',
+      },
+    });
   }
 }

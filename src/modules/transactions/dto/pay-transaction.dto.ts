@@ -27,20 +27,7 @@ export class PayTransactionDto {
   @IsString()
   @Length(2, 2)
   @IsIn(
-    [
-      '01',
-      '02',
-      '03',
-      '04',
-      '05',
-      '06',
-      '07',
-      '08',
-      '09',
-      '10',
-      '11',
-      '12',
-    ],
+    ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'],
     { message: 'expMonth must be between 01 and 12' },
   )
   expMonth!: string;

@@ -48,7 +48,11 @@ export class ProcessorGateway implements PaymentGatewayPort {
     return `${this.processorConfig.baseUrl.replace(/\/$/, '')}${path}`;
   }
 
-  private createSignature(reference: string, amountInCents: number, currency: string) {
+  private createSignature(
+    reference: string,
+    amountInCents: number,
+    currency: string,
+  ) {
     const raw = `${reference}${amountInCents}${currency}${this.processorConfig.integrityKey}`;
     return createHash('sha256').update(raw).digest('hex');
   }
@@ -60,20 +64,23 @@ export class ProcessorGateway implements PaymentGatewayPort {
     expYear: string;
     cardHolder: string;
   }) {
-    const response = await fetch(this.buildUrl(this.processorConfig.tokenizePath), {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.processorConfig.publicKey}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      this.buildUrl(this.processorConfig.tokenizePath),
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.processorConfig.publicKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          number: input.cardNumber,
+          cvc: input.cvc,
+          exp_month: input.expMonth,
+          exp_year: input.expYear,
+          card_holder: input.cardHolder,
+        }),
       },
-      body: JSON.stringify({
-        number: input.cardNumber,
-        cvc: input.cvc,
-        exp_month: input.expMonth,
-        exp_year: input.expYear,
-        card_holder: input.cardHolder,
-      }),
-    });
+    );
     const json = (await response.json()) as Record<string, unknown>;
     const token = readString(readObject(json.data).id);
     if (!response.ok || !token) {
@@ -93,14 +100,21 @@ export class ProcessorGateway implements PaymentGatewayPort {
       readObject(readObject(json.data).presigned_acceptance).acceptance_token,
     );
     if (!response.ok || !acceptanceToken) {
-      throw new Error(readString(json.error, 'Acceptance token retrieval failed'));
+      throw new Error(
+        readString(json.error, 'Acceptance token retrieval failed'),
+      );
     }
     return acceptanceToken;
   }
 
   /** GET transaction by external id; returns { status, id } from data. */
-  private async getTransactionStatus(externalId: string): Promise<{ status: string; id: string }> {
-    const path = this.processorConfig.transactionByIdPath.replace('{{id}}', externalId);
+  private async getTransactionStatus(
+    externalId: string,
+  ): Promise<{ status: string; id: string }> {
+    const path = this.processorConfig.transactionByIdPath.replace(
+      '{{id}}',
+      externalId,
+    );
     const response = await fetch(this.buildUrl(path), {
       method: 'GET',
       headers: {
@@ -127,11 +141,15 @@ export class ProcessorGateway implements PaymentGatewayPort {
       const { status } = await this.getTransactionStatus(externalId);
       const raw = { ...safeRaw, status };
       if (status === 'APPROVED') {
-        this.logger.log(`Poll resolved APPROVED reference=${reference} after ${attempt + 1} attempt(s)`);
+        this.logger.log(
+          `Poll resolved APPROVED reference=${reference} after ${attempt + 1} attempt(s)`,
+        );
         return { status: 'APPROVED', externalId, externalStatus: status, raw };
       }
       if (status === 'DECLINED') {
-        this.logger.log(`Poll resolved DECLINED reference=${reference} after ${attempt + 1} attempt(s)`);
+        this.logger.log(
+          `Poll resolved DECLINED reference=${reference} after ${attempt + 1} attempt(s)`,
+        );
         return {
           status: 'DECLINED',
           externalId,
@@ -141,7 +159,9 @@ export class ProcessorGateway implements PaymentGatewayPort {
         };
       }
       if (status === 'VOIDED' || status === 'ERROR') {
-        this.logger.log(`Poll resolved ${status} reference=${reference} after ${attempt + 1} attempt(s)`);
+        this.logger.log(
+          `Poll resolved ${status} reference=${reference} after ${attempt + 1} attempt(s)`,
+        );
         return {
           status: 'ERROR',
           externalId,
@@ -150,14 +170,19 @@ export class ProcessorGateway implements PaymentGatewayPort {
           raw,
         };
       }
-      this.logger.debug(`Poll attempt ${attempt + 1}/${maxAttempts} reference=${reference} status=${status}`);
+      this.logger.debug(
+        `Poll attempt ${attempt + 1}/${maxAttempts} reference=${reference} status=${status}`,
+      );
     }
-    this.logger.warn(`Poll timeout reference=${reference} after ${maxAttempts} attempts`);
+    this.logger.warn(
+      `Poll timeout reference=${reference} after ${maxAttempts} attempts`,
+    );
     return {
       status: 'ERROR',
       externalId,
       externalStatus: 'PENDING',
-      message: 'El pago está tardando más de lo esperado. Revisa el estado más tarde.',
+      message:
+        'El pago está tardando más de lo esperado. Revisa el estado más tarde.',
       raw: safeRaw,
     };
   }
@@ -181,7 +206,9 @@ export class ProcessorGateway implements PaymentGatewayPort {
         !this.processorConfig.privateKey ||
         !this.processorConfig.integrityKey
       ) {
-        this.logger.warn('Payment processor configuration is incomplete (missing env vars)');
+        this.logger.warn(
+          'Payment processor configuration is incomplete (missing env vars)',
+        );
         return {
           status: 'ERROR',
           message: 'Payment processor configuration is incomplete',
@@ -236,7 +263,9 @@ export class ProcessorGateway implements PaymentGatewayPort {
 
       if (!response.ok) {
         const msg = readString(data.error, 'Payment gateway error');
-        this.logger.warn(`Processor API error: status=${response.status} message=${msg}`);
+        this.logger.warn(
+          `Processor API error: status=${response.status} message=${msg}`,
+        );
         return {
           status: 'ERROR',
           externalStatus: status,
@@ -255,7 +284,9 @@ export class ProcessorGateway implements PaymentGatewayPort {
       }
 
       if (status === 'DECLINED') {
-        this.logger.log(`Payment declined by gateway reference=${input.reference} externalStatus=${status}`);
+        this.logger.log(
+          `Payment declined by gateway reference=${input.reference} externalStatus=${status}`,
+        );
         return {
           status: 'DECLINED',
           externalId,
@@ -266,11 +297,15 @@ export class ProcessorGateway implements PaymentGatewayPort {
       }
 
       if (status === 'PENDING') {
-        this.logger.log(`Gateway returned PENDING reference=${input.reference} externalId=${externalId}, polling for result`);
+        this.logger.log(
+          `Gateway returned PENDING reference=${input.reference} externalId=${externalId}, polling for result`,
+        );
         return this.pollUntilTerminal(externalId, input.reference, safeRaw);
       }
 
-      this.logger.warn(`Unexpected gateway status reference=${input.reference} status=${status}`);
+      this.logger.warn(
+        `Unexpected gateway status reference=${input.reference} status=${status}`,
+      );
       return {
         status: 'ERROR',
         externalId,
@@ -279,9 +314,15 @@ export class ProcessorGateway implements PaymentGatewayPort {
         raw: safeRaw,
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown payment error';
-      this.logger.error(`Payment gateway exception: ${message}`, error instanceof Error ? error.stack : undefined);
-      const userMessage = isNetworkError(error) ? USER_FRIENDLY_NETWORK_ERROR : message;
+      const message =
+        error instanceof Error ? error.message : 'Unknown payment error';
+      this.logger.error(
+        `Payment gateway exception: ${message}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      const userMessage = isNetworkError(error)
+        ? USER_FRIENDLY_NETWORK_ERROR
+        : message;
       return {
         status: 'ERROR',
         message: userMessage,

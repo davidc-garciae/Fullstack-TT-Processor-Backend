@@ -5,6 +5,7 @@ import type {
   PaymentGatewayPort,
   TransactionRepositoryPort,
 } from '../../../shared/domain/ports';
+import type { Transaction } from '../../../shared/domain/models';
 
 type PayTransactionError = 'TRANSACTION_NOT_FOUND' | 'PAYMENT_ERROR';
 
@@ -51,12 +52,16 @@ export class PayTransactionUseCase {
       input.reference,
     );
     if (!transaction) {
-      this.logger.warn(`Pay failed: transaction not found reference=${input.reference}`);
+      this.logger.warn(
+        `Pay failed: transaction not found reference=${input.reference}`,
+      );
       return Fail('TRANSACTION_NOT_FOUND', 'Transaction does not exist');
     }
 
     if (transaction.status !== 'PENDING') {
-      this.logger.log(`Pay skipped: transaction already ${transaction.status} reference=${input.reference}`);
+      this.logger.log(
+        `Pay skipped: transaction already ${transaction.status} reference=${input.reference}`,
+      );
       return Ok({
         reference: transaction.reference,
         status: transaction.status,
@@ -77,10 +82,15 @@ export class PayTransactionUseCase {
       email: input.email,
     });
 
-    const gatewayMessage = paymentResult.status === 'APPROVED' ? '' : ` message=${paymentResult.message ?? 'n/a'}`;
-    this.logger.log(`Payment gateway result: status=${paymentResult.status} reference=${input.reference}${gatewayMessage}`);
+    const gatewayMessage =
+      paymentResult.status === 'APPROVED'
+        ? ''
+        : ` message=${paymentResult.message ?? 'n/a'}`;
+    this.logger.log(
+      `Payment gateway result: status=${paymentResult.status} reference=${input.reference}${gatewayMessage}`,
+    );
 
-    let updated;
+    let updated: Transaction;
     if (paymentResult.status === 'APPROVED') {
       try {
         updated = await this.transactionRepository.finalizeApprovedWithStock(
@@ -94,11 +104,13 @@ export class PayTransactionUseCase {
           },
         );
       } catch (error) {
-        const errMsg = error instanceof Error ? error.message : 'Stock finalization failure';
-        this.logger.error(`Stock finalization failed reference=${transaction.reference} error=${errMsg}`);
-        const fallback = await this.transactionRepository.updateStatus(
-          transaction.reference,
-          {
+        const errMsg =
+          error instanceof Error ? error.message : 'Stock finalization failure';
+        this.logger.error(
+          `Stock finalization failed reference=${transaction.reference} error=${errMsg}`,
+        );
+        const fallback: Transaction =
+          await this.transactionRepository.updateStatus(transaction.reference, {
             status: 'ERROR',
             processorTransactionId: paymentResult.externalId,
             processorStatus: paymentResult.externalStatus,
@@ -106,8 +118,7 @@ export class PayTransactionUseCase {
               error instanceof Error
                 ? error.message
                 : 'Stock finalization failure',
-          },
-        );
+          });
         await this.transactionRepository.createEvent(
           fallback.id,
           'PAYMENT_RESULT',
@@ -140,7 +151,9 @@ export class PayTransactionUseCase {
     }
 
     if (paymentResult.status === 'ERROR') {
-      this.logger.warn(`Pay failed: gateway error reference=${input.reference} message=${paymentResult.message ?? 'n/a'}`);
+      this.logger.warn(
+        `Pay failed: gateway error reference=${input.reference} message=${paymentResult.message ?? 'n/a'}`,
+      );
       return Fail('PAYMENT_ERROR', paymentResult.message ?? 'Payment failed');
     }
 

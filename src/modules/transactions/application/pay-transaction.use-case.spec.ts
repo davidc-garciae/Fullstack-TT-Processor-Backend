@@ -1,4 +1,8 @@
 import { PayTransactionUseCase } from './pay-transaction.use-case';
+import type {
+  PaymentGatewayPort,
+  TransactionRepositoryPort,
+} from '../../../shared/domain/ports';
 
 describe('PayTransactionUseCase', () => {
   const pendingTx = {
@@ -27,8 +31,8 @@ describe('PayTransactionUseCase', () => {
       }),
     };
     const useCase = new PayTransactionUseCase(
-      transactionRepository as any,
-      gateway as any,
+      transactionRepository as TransactionRepositoryPort,
+      gateway as PaymentGatewayPort,
     );
 
     const result = await useCase.execute({
@@ -48,10 +52,21 @@ describe('PayTransactionUseCase', () => {
 
   it('fails when transaction does not exist', async () => {
     const useCase = new PayTransactionUseCase(
-      { findByReference: jest.fn().mockResolvedValue(null) } as any,
-      {} as any,
+      {
+        findByReference: jest.fn().mockResolvedValue(null),
+      } as TransactionRepositoryPort,
+      {} as PaymentGatewayPort,
     );
-    const result = await useCase.execute({ reference: 'x' } as any);
+    const result = await useCase.execute({
+      reference: 'x',
+      cardNumber: '4111111111111111',
+      cvc: '123',
+      expMonth: '12',
+      expYear: '2028',
+      cardHolder: 'Jane Doe',
+      installments: 1,
+      email: 'jane@example.com',
+    });
     expect(result.ok).toBe(false);
   });
 
@@ -61,10 +76,19 @@ describe('PayTransactionUseCase', () => {
         findByReference: jest
           .fn()
           .mockResolvedValue({ ...pendingTx, status: 'APPROVED' }),
-      } as any,
-      { pay: jest.fn() } as any,
+      } as TransactionRepositoryPort,
+      { pay: jest.fn() } as PaymentGatewayPort,
     );
-    const result = await useCase.execute({ reference: 'TT-1' } as any);
+    const result = await useCase.execute({
+      reference: 'TT-1',
+      cardNumber: '4111111111111111',
+      cvc: '123',
+      expMonth: '12',
+      expYear: '2028',
+      cardHolder: 'Jane Doe',
+      installments: 1,
+      email: 'jane@example.com',
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.status).toBe('APPROVED');
@@ -79,15 +103,24 @@ describe('PayTransactionUseCase', () => {
           .fn()
           .mockResolvedValue({ ...pendingTx, status: 'ERROR' }),
         createEvent: jest.fn().mockResolvedValue(undefined),
-      } as any,
+      } as TransactionRepositoryPort,
       {
         pay: jest.fn().mockResolvedValue({
           status: 'ERROR',
           message: 'Gateway unavailable',
         }),
-      } as any,
+      } as PaymentGatewayPort,
     );
-    const result = await useCase.execute({ reference: 'TT-1' } as any);
+    const result = await useCase.execute({
+      reference: 'TT-1',
+      cardNumber: '4111111111111111',
+      cvc: '123',
+      expMonth: '12',
+      expYear: '2028',
+      cardHolder: 'Jane Doe',
+      installments: 1,
+      email: 'jane@example.com',
+    });
     expect(result.ok).toBe(false);
   });
 
@@ -97,19 +130,32 @@ describe('PayTransactionUseCase', () => {
         findByReference: jest.fn().mockResolvedValue(pendingTx),
         finalizeApprovedWithStock: jest
           .fn()
-          .mockRejectedValue(new Error('INSUFFICIENT_STOCK_DURING_FINALIZATION')),
-        updateStatus: jest.fn().mockResolvedValue({ ...pendingTx, status: 'ERROR' }),
+          .mockRejectedValue(
+            new Error('INSUFFICIENT_STOCK_DURING_FINALIZATION'),
+          ),
+        updateStatus: jest
+          .fn()
+          .mockResolvedValue({ ...pendingTx, status: 'ERROR' }),
         createEvent: jest.fn().mockResolvedValue(undefined),
-      } as any,
+      } as TransactionRepositoryPort,
       {
         pay: jest.fn().mockResolvedValue({
           status: 'APPROVED',
           externalId: 'gw-1',
           externalStatus: 'APPROVED',
         }),
-      } as any,
+      } as PaymentGatewayPort,
     );
-    const result = await useCase.execute({ reference: 'TT-1' } as any);
+    const result = await useCase.execute({
+      reference: 'TT-1',
+      cardNumber: '4111111111111111',
+      cvc: '123',
+      expMonth: '12',
+      expYear: '2028',
+      cardHolder: 'Jane Doe',
+      installments: 1,
+      email: 'jane@example.com',
+    });
     expect(result.ok).toBe(false);
   });
 });
