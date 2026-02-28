@@ -1,12 +1,13 @@
 # Render Blueprint: https://docs.render.com/blueprint-spec
 # Create a PostgreSQL database in Render and set DATABASE_URL in the service env.
+# For Neon: use DATABASE_URL = postgresql://USER:PASSWORD@HOST/DB?sslmode=require
 services:
   - type: web
     name: fullstack-tt-backend
     runtime: node
     plan: free
-    buildCommand: pnpm install --frozen-lockfile && pnpm prisma generate && pnpm build
-    startCommand: pnpm start:prod
+    buildCommand: pnpm install --frozen-lockfile && pnpm prisma generate && pnpm prisma migrate deploy && pnpm run build
+    startCommand: pnpm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
