@@ -87,6 +87,16 @@ PAYMENT_PROCESSOR_TRANSACTIONS_PATH=/transactions
 - `pnpm test:e2e`
 - `pnpm test:cov`
 
+## Deploy on Render
+
+1. Create a new **Web Service** and connect this repository.
+2. Use the **Blueprint** (root `render.yaml`) or set manually:
+   - **Build Command:** `pnpm install --frozen-lockfile && pnpm prisma generate && pnpm build`
+   - **Start Command:** `pnpm start:prod`
+3. Create a **PostgreSQL** database in Render and set `DATABASE_URL` in the service environment.
+4. Set required env vars (no secrets in git): `NODE_ENV=production`, `PORT` (auto), `DATABASE_URL`, `PROCESSOR_BASE_URL`, `PAYMENT_PROCESSOR_PUBLIC_KEY`, `PAYMENT_PROCESSOR_PRIVATE_KEY`, `PAYMENT_PROCESSOR_INTEGRITY_KEY`. See `.env.example` for optional keys (Wompi paths, polling, mock).
+5. After first deploy, run migrations and seed from the shell or a one-off job: `pnpm prisma migrate deploy` and `pnpm prisma:seed` (if using Render shell, use the same `DATABASE_URL`).
+
 ## API Endpoints
 
 Base URL: `http://localhost:3000/api/v1`

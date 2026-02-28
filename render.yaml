@@ -1,0 +1,24 @@
+# Render Blueprint: https://docs.render.com/blueprint-spec
+# Create a PostgreSQL database in Render and set DATABASE_URL in the service env.
+services:
+  - type: web
+    name: fullstack-tt-backend
+    runtime: node
+    plan: free
+    buildCommand: pnpm install --frozen-lockfile && pnpm prisma generate && pnpm build
+    startCommand: pnpm start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: PROCESSOR_BASE_URL
+        sync: false
+      - key: PAYMENT_PROCESSOR_PUBLIC_KEY
+        sync: false
+      - key: PAYMENT_PROCESSOR_PRIVATE_KEY
+        sync: false
+      - key: PAYMENT_PROCESSOR_INTEGRITY_KEY
+        sync: false
