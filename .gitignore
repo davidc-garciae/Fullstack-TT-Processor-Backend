@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Prisma
+prisma/migrations/**/migration_lock.toml
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tsbuildinfo

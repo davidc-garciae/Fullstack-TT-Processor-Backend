@@ -1,0 +1,186 @@
+{
+  "info": {
+    "_postman_id": "4d022cc0-307d-4f22-83d4-6d484b5bbf4f",
+    "name": "FullStack TT Backend",
+    "description": "Coleccion para probar el flujo completo: products -> preview -> transaction -> pay -> status.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "reference",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. List Products",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "products"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "if (Array.isArray(json) && json.length > 0 && json[0].id) {",
+              "  pm.collectionVariables.set('productId', json[0].id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Get Product by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/products/{{productId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "products",
+            "{{productId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Checkout Preview",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/checkout/preview",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "checkout",
+            "preview"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Create Pending Transaction",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"idempotencyKey\": \"postman-idempotency-001\",\n  \"customer\": {\n    \"fullName\": \"Jane Doe\",\n    \"email\": \"jane.doe@email.com\",\n    \"phone\": \"+573001112233\",\n    \"documentType\": \"CC\",\n    \"documentNumber\": \"1234567890\"\n  },\n  \"delivery\": {\n    \"addressLine1\": \"Calle 10 #20-30\",\n    \"addressLine2\": \"Apto 302\",\n    \"city\": \"Medellin\",\n    \"region\": \"Antioquia\",\n    \"country\": \"CO\",\n    \"postalCode\": \"050021\",\n    \"instructions\": \"Entregar en porteria\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/transactions",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "transactions"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201 or 200', function () {",
+              "  pm.expect([200, 201]).to.include(pm.response.code);",
+              "});",
+              "const json = pm.response.json();",
+              "if (json && json.reference) {",
+              "  pm.collectionVariables.set('reference', json.reference);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Pay Transaction",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardNumber\": \"4242424242424242\",\n  \"cvc\": \"123\",\n  \"expMonth\": \"12\",\n  \"expYear\": \"28\",\n  \"cardHolder\": \"JANE DOE\",\n  \"installments\": 1,\n  \"email\": \"jane.doe@email.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/transactions/{{reference}}/pay",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "transactions",
+            "{{reference}}",
+            "pay"
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Get Transaction Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/transactions/{{reference}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "transactions",
+            "{{reference}}"
+          ]
+        }
+      }
+    }
+  ]
+}

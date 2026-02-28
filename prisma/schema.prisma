@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  priceCents  Int         @map("price_cents")
+  currency    String      @default("COP")
+  isActive    Boolean     @default(true) @map("is_active")
+  stockItem   StockItem?
+  transactions Transaction[]
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+model StockItem {
+  id             String   @id @default(uuid())
+  productId      String   @unique @map("product_id")
+  availableUnits Int      @default(0) @map("available_units")
+  reservedUnits  Int      @default(0) @map("reserved_units")
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([availableUnits])
+  @@map("stock_items")
+}
+
+model Customer {
+  id             String        @id @default(uuid())
+  fullName       String        @map("full_name")
+  email          String
+  phone          String
+  documentType   String        @map("document_type")
+  documentNumber String        @map("document_number")
+  deliveries     Delivery[]
+  transactions   Transaction[]
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@index([email])
+  @@map("customers")
+}
+
+model Delivery {
+  id           String        @id @default(uuid())
+  customerId   String        @map("customer_id")
+  addressLine1 String        @map("address_line1")
+  addressLine2 String?       @map("address_line2")
+  city         String
+  region       String
+  country      String
+  postalCode   String        @map("postal_code")
+  instructions String?
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("deliveries")
+}
+
+model Transaction {
+  id                String             @id @default(uuid())
+  reference         String             @unique
+  productId         String             @map("product_id")
+  customerId        String             @map("customer_id")
+  deliveryId        String             @map("delivery_id")
+  quantity          Int
+  productAmountCents Int              @map("product_amount_cents")
+  baseFeeCents      Int                @map("base_fee_cents")
+  deliveryFeeCents  Int                @map("delivery_fee_cents")
+  totalAmountCents  Int                @map("total_amount_cents")
+  status            TransactionStatus  @default(PENDING)
+  processorTransactionId String?       @map("processor_transaction_id")
+  processorStatus       String?        @map("processor_status")
+  failureReason     String?            @map("failure_reason")
+  idempotencyKey    String             @unique @map("idempotency_key")
+  product           Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  customer          Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  delivery          Delivery           @relation(fields: [deliveryId], references: [id], onDelete: Restrict)
+  events            TransactionEvent[]
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("transactions")
+}
+
+model TransactionEvent {
+  id            String      @id @default(uuid())
+  transactionId String      @map("transaction_id")
+  eventType     String      @map("event_type")
+  payloadJson   Json        @map("payload_json")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("transaction_events")
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  ERROR
+}
