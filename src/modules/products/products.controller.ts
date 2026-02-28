@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Header,
+  HttpCode,
   NotFoundException,
   Param,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
+  @HttpCode(200)
   @Header('Cache-Control', 'no-store, no-cache, must-revalidate')
   @ApiOperation({ summary: 'List active products with stock' })
   @ApiOkResponse({ description: 'Products returned successfully' })
