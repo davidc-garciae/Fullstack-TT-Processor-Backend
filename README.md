@@ -1,5 +1,14 @@
 # Backend - FullStack TT
 
+[![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-7.4-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![Jest](https://img.shields.io/badge/Jest-30-C21325?logo=jest&logoColor=white)](https://jestjs.io/)
+[![pnpm](https://img.shields.io/badge/pnpm-10.11-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
+[![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?logo=swagger&logoColor=black)](https://swagger.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Backend API for a product checkout flow with card payment processing in sandbox mode, implemented with **NestJS + TypeScript + PostgreSQL** using **Hexagonal Architecture (Ports & Adapters)**. Suitable for production deployments with clear boundaries for future scaling.
 
 ## Stack
