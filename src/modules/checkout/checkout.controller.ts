@@ -28,9 +28,9 @@ export class CheckoutController {
       productAmountCents: 259000,
       baseFeeCents: 1200,
       deliveryFeeCents: 2000,
-      // IVA (19%) aplicado al producto: round(259000 * 19 / 100) = 49210
-      // total = 259000 + 49210 + 1200 + 2000 = 311410
-      totalAmountCents: 311410,
+      // total bruto = 259000 + IVA(49210) + 1200 + 2000 = 311410
+      // redondeado al múltiplo de 100 => 311500
+      totalAmountCents: 311500,
     },
   })
   @ApiNotFoundResponse({ description: 'Product not found or out of stock' })

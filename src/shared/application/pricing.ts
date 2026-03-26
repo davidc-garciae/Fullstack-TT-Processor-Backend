@@ -9,8 +9,12 @@ export function calculateTotals(
   const productAmountCents = unitPriceCents * quantity;
   const ivaPerUnitCents = Math.round((unitPriceCents * ivaPercent) / 100);
   const ivaAmountCents = ivaPerUnitCents * quantity;
-  const totalAmountCents =
+  const rawTotalAmountCents =
     productAmountCents + ivaAmountCents + BASE_FEE_CENTS + DELIVERY_FEE_CENTS;
+
+  // El medio de pago no acepta montos con "centavos" en COP.
+  // Redondeamos hacia arriba al múltiplo de 100 para garantizar integridad del cobro.
+  const totalAmountCents = Math.ceil(rawTotalAmountCents / 100) * 100;
   return {
     productAmountCents,
     baseFeeCents: BASE_FEE_CENTS,
