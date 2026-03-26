@@ -42,7 +42,11 @@ export class PreviewCheckoutUseCase {
       return Fail('OUT_OF_STOCK', 'Not enough stock for requested quantity');
     }
 
-    const totals = calculateTotals(product.priceCents, input.quantity);
+    const totals = calculateTotals(
+      product.priceCents,
+      input.quantity,
+      product.ivaPercent,
+    );
     return Ok({
       productId: product.id,
       quantity: input.quantity,

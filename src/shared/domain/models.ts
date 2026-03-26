@@ -6,6 +6,7 @@ export interface Product {
   description: string;
   priceCents: number;
   currency: string;
+  ivaPercent: number;
   isActive: boolean;
 }
 

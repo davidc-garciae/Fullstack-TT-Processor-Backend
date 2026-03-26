@@ -87,7 +87,8 @@ export class TransactionsController {
       reference: 'TT-1730000000000-1234',
       status: 'PENDING',
       processorStatus: null,
-      totalAmountCents: 262200,
+      // IVA (19%) aplicado al producto: 311410
+      totalAmountCents: 311410,
       createdAt: '2026-02-27T01:00:00.000Z',
       updatedAt: '2026-02-27T01:00:00.000Z',
     },

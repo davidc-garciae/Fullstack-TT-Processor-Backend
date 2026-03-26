@@ -18,6 +18,7 @@ export class PrismaProductRepository implements ProductRepositoryPort {
       description: row.description,
       priceCents: row.priceCents,
       currency: row.currency,
+      ivaPercent: row.ivaPercent,
       isActive: row.isActive,
       stock: row.stockItem
         ? {
@@ -41,6 +42,7 @@ export class PrismaProductRepository implements ProductRepositoryPort {
       description: row.description,
       priceCents: row.priceCents,
       currency: row.currency,
+      ivaPercent: row.ivaPercent,
       isActive: row.isActive,
     };
   }

@@ -18,6 +18,7 @@ model Product {
   description String
   priceCents  Int         @map("price_cents")
   currency    String      @default("COP")
+  ivaPercent  Int         @default(19) @map("iva_percent")
   isActive    Boolean     @default(true) @map("is_active")
   stockItem   StockItem?
   transactions Transaction[]

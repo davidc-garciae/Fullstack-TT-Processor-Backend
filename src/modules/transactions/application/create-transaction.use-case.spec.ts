@@ -15,6 +15,7 @@ describe('CreateTransactionUseCase', () => {
           id: 'p1',
           isActive: true,
           priceCents: 10000,
+          ivaPercent: 19,
         }),
       } as ProductRepositoryPort,
       {
@@ -67,7 +68,7 @@ describe('CreateTransactionUseCase', () => {
       {
         findById: jest
           .fn()
-          .mockResolvedValue({ id: 'p1', isActive: true, priceCents: 100 }),
+          .mockResolvedValue({ id: 'p1', isActive: true, priceCents: 100, ivaPercent: 19 }),
       } as ProductRepositoryPort,
       {
         getByProductId: jest.fn().mockResolvedValue({ availableUnits: 0 }),

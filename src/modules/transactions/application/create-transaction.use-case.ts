@@ -76,7 +76,11 @@ export class CreateTransactionUseCase {
       customerId: customer.id,
       ...input.delivery,
     });
-    const totals = calculateTotals(product.priceCents, input.quantity);
+    const totals = calculateTotals(
+      product.priceCents,
+      input.quantity,
+      product.ivaPercent,
+    );
     const reference = `TT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
     try {
